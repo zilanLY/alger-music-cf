@@ -11,11 +11,11 @@ const isDev = process.env.NODE_ENV === 'development'
 
 export default defineConfig({
   base: './',
-  root: resolve(projectRoot, 'src/renderer'),
+  root: resolve(projectRoot, 'src'),
   resolve: {
     alias: {
-      '@': resolve(projectRoot, 'src/renderer'),
-      '@renderer': resolve(projectRoot, 'src/renderer'),
+      '@': resolve(projectRoot, 'src'),
+      '@renderer': resolve(projectRoot, 'src'),
       '@i18n': resolve(projectRoot, 'src/i18n')
     }
   },
@@ -41,8 +41,8 @@ export default defineConfig({
 
   build: {
     target: 'esnext',
-    outDir: resolve(projectRoot, 'dist'),
-    emptyDirOut: true,
+    outDir: resolve(projectRoot, '../dist'),
+    emptyOutDir: true,
     cssMinify: 'lightningcss',
     cssCodeSplit: false,
     reportCompressedSize: false,
