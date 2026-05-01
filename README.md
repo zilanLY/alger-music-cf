@@ -1,32 +1,70 @@
-# Alger Music - Cloudflare 一键部署
+# Alger Music - Cloudflare Pages 部署
 
-直接连接 GitHub 仓库到 Cloudflare Pages 实现一键部署。
+## 架构
 
-## 部署步骤
+```
+用户浏览器
+    │
+    ├── 前端静态文件 → Cloudflare Pages (workers.dev 或自定义域名)
+    │
+    └── /api/* 请求 → Cloudflare Workers (代理到你的 API 后端)
+                         │
+                         └── Vercel / Leapcell 等 → netease-cloud-music-api-alger
+```
 
-### 1. 连接 GitHub
+## 连接 GitHub 一键部署
+
+### 1. Cloudflare Dashboard 配置
+
 1. 打开 [Cloudflare Dashboard](https://dash.cloudflare.com)
-2. 进入 **Workers & Pages** → **连接 GitHub**
-3. 授权并选择仓库 `zilanLY/alger-music-cf`
+2. **Workers & Pages** → **创建应用程序** → **连接到 GitHub**
+3. 选择仓库 **`zilanLY/alger-music-cf`**
 
-### 2. 创建部署
-1. 选择 **直接上传** 或 **GitHub 连接**
-2. 配置:
-   - **构建命令**: `cd web && npm install && npm run build`
-   - **输出目录**: `web/dist`
-   - **根目录**: `/`
+### 2. 设置构建配置
 
-### 3. 一键部署
-以后每次 push 代码到 main 分支，Cloudflare 会自动构建并部署。
+在 Cloudflare 创建 Pages 应用时，配置如下：
 
-## 项目说明
+| 配置项 | 值 |
+|--------|-----|
+| **生产分支** | `main` |
+| **构建命令** | `cd web && npm install && npm run build` |
+| **输出目录** | `web/dist` |
+| **根目录** | `/` |
 
-| 目录 | 用途 |
-|------|------|
-| `web/` | 前端 Vue 项目 |
-| `src/` | Worker API（如需） |
+### 3. 设置环境变量
 
-## 注意事项
+在 Pages 设置 → 环境变量中添加：
 
-- 前端是纯静态项目，API 需要另外部署（如 Vercel）
-- 部署后在 Cloudflare 设置自定义域名即可访问
+| 变量名 | 值 | 说明 |
+|--------|-----|------|
+| `VITE_API` | `https://你的-worker.workers.dev` | API 代理地址（部署 Worker 后填写） |
+
+### 4. 部署 Worker（API 代理）
+
+```bash
+# 本地测试
+npx wrangler dev
+
+# 部署到 Cloudflare Workers
+npx wrangler deploy
+```
+
+部署后需要在 Worker 设置中添加环境变量 `MUSIC_API_URL`，指向你的 API 后端地址（如 Vercel 上的 netease-cloud-music-api-alger）。
+
+## 手动部署（不连接 GitHub）
+
+```bash
+# 克隆仓库
+git clone https://github.com/zilanLY/alger-music-cf.git
+cd alger-music-cf
+
+# 部署前端
+npx wrangler pages deploy web/dist
+
+# 部署 Worker
+npx wrangler deploy
+```
+
+## 自定义域名（可选）
+
+在 Cloudflare Pages 的自定义域设置中绑定你的域名即可。

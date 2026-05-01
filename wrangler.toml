@@ -3,11 +3,5 @@ compatibility_date = "2024-12-01"
 main = "src/index.js"
 compatibility_flags = ["nodejs_compat"]
 
-[site]
-bucket = "./public"
-
 [vars]
 ENVIRONMENT = "production"
-
-# Cloudflare Pages configuration for frontend
-pages_build_output_dir = "./web/dist"
