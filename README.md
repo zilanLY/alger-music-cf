@@ -1,15 +1,21 @@
-# Alger Music - Cloudflare Pages 部署
+# Alger Music - Cloudflare 一键部署
 
 ## 架构
 
 ```
 用户浏览器
     │
-    ├── 前端静态文件 → Cloudflare Pages (workers.dev 或自定义域名)
-    │
-    └── /api/* 请求 → Cloudflare Workers (代理到你的 API 后端)
-                         │
-                         └── Vercel / Leapcell 等 → netease-cloud-music-api-alger
+    └── alger-music.workers.dev (本 Worker)
+              │
+              ├── 前端静态文件 → web/dist/
+              │
+              └── API 请求 (适配器转换格式)
+                        │
+                        ▼
+                  Meting-API-Serverless (同一 Worker 内)
+                  ├── /api?server=netease&type=song&id=xxx
+                  ├── /api?server=tencent&type=search&...
+                  └── 支持: 网易云 / QQ音乐 / 酷狗 / 酷我 / 百度
 ```
 
 ## 连接 GitHub 一键部署
@@ -21,8 +27,6 @@
 3. 选择仓库 **`zilanLY/alger-music-cf`**
 
 ### 2. 设置构建配置
-
-在 Cloudflare 创建 Pages 应用时，配置如下：
 
 | 配置项 | 值 |
 |--------|-----|
@@ -37,34 +41,54 @@
 
 | 变量名 | 值 | 说明 |
 |--------|-----|------|
-| `VITE_API` | `https://你的-worker.workers.dev` | API 代理地址（部署 Worker 后填写） |
+| `METING_API_URL` | `https://your-worker.workers.dev` | 指向 Meting-API-Serverless 地址 |
 
-### 4. 部署 Worker（API 代理）
+> **注意**：本项目**已经内置**了 Meting-API-Serverless API，不需要单独部署外部 API。
+> 环境变量 `METING_API_URL` 留空即可使用内置 API。
 
-```bash
-# 本地测试
-npx wrangler dev
+## 内置 API 详细配置
 
-# 部署到 Cloudflare Workers
-npx wrangler deploy
-```
+### QQ 音乐 Cookie（获取 VIP 资源）
 
-部署后需要在 Worker 设置中添加环境变量 `MUSIC_API_URL`，指向你的 API 后端地址（如 Vercel 上的 netease-cloud-music-api-alger）。
+1. 获取 QQ 音乐 Cookie:
+   - 打开 QQ 音乐网页版并登录
+   - 按 F12 打开开发者工具 → Network
+   - 任意请求中复制 Cookie 头部内容
 
-## 手动部署（不连接 GitHub）
+2. 在 Worker Settings → Variables 中添加:
+   - `METING_COOKIE_TENCENT` = 你的 QQ 音乐 Cookie
 
-```bash
-# 克隆仓库
-git clone https://github.com/zilanLY/alger-music-cf.git
-cd alger-music-cf
+### Cookie 保活（可选）
 
-# 部署前端
-npx wrangler pages deploy web/dist
+如需 QQ 音乐 Cookie 自动续期，还需要：
 
-# 部署 Worker
-npx wrangler deploy
-```
+1. 创建 KV 数据库:
+   - **Storage & Databases** → **KV Namespace** → 创建命名空间（如 `meting_kv`）
 
-## 自定义域名（可选）
+2. 绑定 KV:
+   - Workers → **Bindings** → **Add** → **KV Namespace**
+   - Variable name: `METING_KV`
+   - KV Namespace: 选择刚创建的
 
-在 Cloudflare Pages 的自定义域设置中绑定你的域名即可。
+3. 添加定时任务:
+   - **Trigger Events** → **Add Cron Trigger**
+   - 设置: 每 4 小时执行一次
+
+### 网易云 Cookie
+
+| 变量名 | 说明 |
+|--------|------|
+| `METING_COOKIE_NETEASE` | 网易云音乐 Cookie |
+| `METING_COOKIE_KUGOU` | 酷狗音乐 Cookie |
+| `METING_COOKIE_KUWO` | 酷我音乐 Cookie |
+| `METING_TOKEN` | API 鉴权密钥（强烈建议设置） |
+
+## 支持的音乐平台
+
+| 平台 | source 值 | 说明 |
+|------|-----------|------|
+| 网易云音乐 | `0` | 默认，支持 VIP |
+| QQ音乐 | `1` | 需要 Cookie |
+| 酷狗音乐 | `2` | 需要 Cookie |
+| 酷我音乐 | `3` | 需要 Cookie |
+| 百度音乐 | `4` | - |

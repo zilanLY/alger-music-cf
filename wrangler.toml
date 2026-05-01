@@ -1,7 +1,8 @@
-name = "alger-music"
-compatibility_date = "2024-12-01"
+name = "alger-music-api"
 main = "src/index.js"
+compatibility_date = "2024-12-01"
 compatibility_flags = ["nodejs_compat"]
 
 [vars]
 ENVIRONMENT = "production"
+METING_API_URL = ""

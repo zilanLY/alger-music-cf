@@ -1,25 +1,23 @@
 {
   "name": "alger-music-cf",
   "version": "1.0.0",
-  "description": "Alger Music - Cloudflare Workers + Pages 一键部署",
+  "description": "Alger Music - Cloudflare Workers (Meting API + Frontend)",
   "private": true,
   "type": "module",
   "scripts": {
     "dev": "wrangler dev",
     "deploy": "wrangler deploy",
-    "deploy:worker": "wrangler deploy",
-    "deploy:pages": "wrangler pages deploy web/dist",
     "build:frontend": "cd web && npm install && npm run build",
     "deploy:all": "npm run build:frontend && npm run deploy"
   },
-  "workspaces": [
-    "./web"
-  ],
   "dependencies": {
-    "@hono/node-server": "^1.15.0",
-    "hono": "^4.0.0"
+    "@meting/core": "^1.6.0",
+    "aes-js": "^3.1.2",
+    "hash.js": "^1.1.7",
+    "hono": "^4.10.3",
+    "lru-cache": "^11.2.2"
   },
   "devDependencies": {
-    "wrangler": "^3.100.0"
+    "wrangler": "^4.50.0"
   }
 }
