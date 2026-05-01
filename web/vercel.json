@@ -1,0 +1,22 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "dist/**",
+      "use": "@vercel/static",
+      "config": { "cleanUrls": true }
+    },
+    {
+      "src": "api/**/*.js",
+      "use": "@vercel/node"
+    }
+  ],
+  "routes": [
+    { "src": "/api/(.*)", "dest": "api/$1" },
+    { "src": "/service-worker\\.js", "dest": "/dist/service-worker.js" },
+    { "src": "/(.*)", "dest": "dist/$1" }
+  ],
+  "installCommand": "npm install --ignore-scripts --prefer-offline",
+  "buildCommand": "NODE_ENV=production npm run build",
+  "framework": null
+}

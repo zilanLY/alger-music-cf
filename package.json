@@ -1,0 +1,25 @@
+{
+  "name": "alger-music-cf",
+  "version": "1.0.0",
+  "description": "Alger Music - Cloudflare Workers + Pages 一键部署",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "deploy:worker": "wrangler deploy",
+    "deploy:pages": "wrangler pages deploy web/dist",
+    "build:frontend": "cd web && npm install && npm run build",
+    "deploy:all": "npm run build:frontend && npm run deploy"
+  },
+  "workspaces": [
+    "./web"
+  ],
+  "dependencies": {
+    "@hono/node-server": "^1.15.0",
+    "hono": "^4.0.0"
+  },
+  "devDependencies": {
+    "wrangler": "^3.100.0"
+  }
+}

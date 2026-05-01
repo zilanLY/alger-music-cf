@@ -1,0 +1,84 @@
+# GitHub Actions - Alger Music 一键部署
+
+name: Deploy to Cloudflare
+
+on:
+  workflow_dispatch:
+    inputs:
+      target:
+        description: '部署目标'
+        required: true
+        default: 'all'
+        type: choice
+        options:
+          - all
+          - worker
+          - pages
+
+env:
+  NODE_VERSION: '20'
+
+jobs:
+  deploy-worker:
+    name: Deploy Worker
+    if: github.event.inputs.target == 'all' || github.event.inputs.target == 'worker'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      deployments: write
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Deploy to Cloudflare Workers
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CF_API_TOKEN }}
+          accountId: ${{ secrets.CF_ACCOUNT_ID }}
+          command: deploy
+
+  deploy-pages:
+    name: Deploy Pages (Frontend)
+    if: github.event.inputs.target == 'all' || github.event.inputs.target == 'pages'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      deployments: write
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: web/package-lock.json
+
+      - name: Install Frontend Dependencies
+        working-directory: web
+        run: npm install
+
+      - name: Build Frontend
+        working-directory: web
+        run: npm run build
+
+      - name: Deploy to Cloudflare Pages
+        uses: cloudflare/pages-action@v1
+        with:
+          apiToken: ${{ secrets.CF_API_TOKEN }}
+          accountId: ${{ secrets.CF_ACCOUNT_ID }}
+          projectName: alger-music
+          directory: web/dist
+          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
